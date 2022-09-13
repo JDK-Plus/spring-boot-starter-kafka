@@ -2,8 +2,6 @@ package plus.jdk.kafka.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import plus.jdk.kafka.annotation.KafkaConsumerDesc;
-import plus.jdk.kafka.annotation.KafkaProducerDesc;
 import plus.jdk.kafka.annotation.KafkaClient;
 import plus.jdk.kafka.global.IKafkaQueue;
 
@@ -12,14 +10,9 @@ import plus.jdk.kafka.global.IKafkaQueue;
 public class KafkaDefinition {
 
     /**
-     * 关于消费配置相关
+     * 当前topic的信息
      */
-    private KafkaConsumerDesc kafkaConsumerDesc;
-
-    /**
-     * 关于生产配置相关
-     */
-    private KafkaProducerDesc kafkaProducerDesc;
+    private KafkaTopicDefinition kafkaTopicDefinition;
 
     /**
      * 关于kafka的定义
