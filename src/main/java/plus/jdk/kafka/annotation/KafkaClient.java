@@ -12,19 +12,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KafkaClient {
 
-
     /**
      * 消费的topic列表
      */
     String topicName();
-
-    /**
-     * 用户名
-     */
-    String userName() default "";
-
-    /**
-     * 密码
-     */
-    String password() default "";
 }

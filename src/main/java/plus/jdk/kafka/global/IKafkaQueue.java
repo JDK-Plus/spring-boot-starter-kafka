@@ -7,9 +7,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.springframework.core.env.Environment;
-import plus.jdk.kafka.annotation.KafkaConsumerDesc;
 import plus.jdk.kafka.common.IMessageCallback;
+import plus.jdk.kafka.model.KafkaTopicDefinition;
 import plus.jdk.kafka.model.KafkaDefinition;
 
 import java.time.Duration;
@@ -29,7 +28,7 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
     /**
      * 关于topic的定义
      */
-    private KafkaDefinition kafkaDefinition;
+    protected KafkaDefinition kafkaDefinition;
 
     protected boolean processMessage(V data) {
         return true;
@@ -63,20 +62,17 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
 
     @Override
     public void run() {
-        KafkaConsumerDesc consumerDesc = kafkaDefinition.getKafkaConsumerDesc();
-        if(consumerDesc == null) {
-            return;
-        }
+        KafkaTopicDefinition clientInfo = kafkaDefinition.getKafkaTopicDefinition();
         KafkaConsumer<K, V> consumer = KafkaClientInitFactory.getConsumer(kafkaDefinition);
         String topicName = kafkaDefinition.getKafkaClient().topicName();
         consumer.subscribe(Collections.singletonList(topicName));
         while (true) {
             try {
-                ConsumerRecords<K, V> records = consumer.poll(Duration.ofSeconds(consumerDesc.pollTimeout()));
+                ConsumerRecords<K, V> records = consumer.poll(Duration.ofSeconds(clientInfo.getPollTimeout()));
                 for (ConsumerRecord<K, V> record : records) {
                     // 保证每次只拉取一条消息，处理成功以后则开始提交，否则重试
                     boolean ret = processMessage(record.value());
-                    if (ret && consumerDesc.autoCommit()) {
+                    if (ret && clientInfo.getAutoCommit()) {
                         consumer.commitSync();
                     }
                 }

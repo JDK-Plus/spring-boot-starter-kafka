@@ -1,5 +1,6 @@
 package plus.jdk.kafka.global;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +20,7 @@ public class KafkaClientLifecycle  implements SmartLifecycle {
         this.kafkaClientInitFactory = new KafkaClientInitFactory(beanFactory, applicationContext, properties, environment);
     }
 
+    @SneakyThrows
     @Override
     public void start() {
         kafkaClientInitFactory.initializationDefinition();
