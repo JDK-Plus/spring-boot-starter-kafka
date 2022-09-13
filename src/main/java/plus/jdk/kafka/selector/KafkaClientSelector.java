@@ -15,11 +15,11 @@ import plus.jdk.kafka.global.KafkaClientLifecycle;
 @Configuration
 public class KafkaClientSelector extends WebApplicationObjectSupport implements BeanFactoryAware, WebMvcConfigurer {
 
-    private BeanFactory beanFactory;
+    public static BeanFactory beanFactory;
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
+        KafkaClientSelector.beanFactory = beanFactory;
     }
 
     @Bean

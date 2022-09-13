@@ -1,6 +1,5 @@
 package plus.jdk.kafka.global;
 
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -20,9 +19,9 @@ import plus.jdk.kafka.model.KafkaDefinition;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import plus.jdk.kafka.selector.KafkaClientSelector;
 
 @Slf4j
-@KafkaClient(topicName = "${xxx.xxx}")
 public class KafkaClientInitFactory {
 
     private final BeanFactory beanFactory;
@@ -79,7 +78,9 @@ public class KafkaClientInitFactory {
                 while (true) {
                     try {
                         kafkaQueue.run();
-                    }catch (Exception ignored) {}
+                    }catch (Exception e) {
+                        log.error("start consumer failed, message:{}", e.getMessage());
+                    }
                 }
             });
             consumerThread.start();
@@ -90,8 +91,17 @@ public class KafkaClientInitFactory {
         KafkaClient kafkaClient = kafkaDefinition.getKafkaClient();
         KafkaConsumerDesc kafkaConsumerDesc = kafkaDefinition.getKafkaConsumerDesc();
         Properties properties = new Properties();
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, String.join(",", kafkaConsumerDesc.brokers()));
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaConsumerDesc.groupName());
+        String brokers = String.join(",", kafkaConsumerDesc.brokers());
+        Environment environment = KafkaClientSelector.beanFactory.getBean(Environment.class);
+        if(environment.containsProperty(brokers)) {
+            brokers = environment.getProperty(brokers);
+        }
+        String groupName = kafkaConsumerDesc.groupName();
+        if(environment.containsProperty(groupName)) {
+            groupName = environment.getProperty(groupName);
+        }
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupName);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, kafkaConsumerDesc.maxPollRecord());
@@ -99,14 +109,23 @@ public class KafkaClientInitFactory {
         properties.put("security.protocol", "SASL_PLAINTEXT");
         properties.put("sasl.mechanism", "PLAIN");
         String username = !kafkaClient.userName().equals("") ? kafkaClient.userName() : clientProperties.getUserName();
-        ;
         username = !kafkaConsumerDesc.userName().equals("") ? kafkaConsumerDesc.userName() : username;
         String password = !kafkaClient.password().equals("") ? kafkaClient.password() : clientProperties.getPassword();
         password = !kafkaConsumerDesc.password().equals("") ? kafkaConsumerDesc.password() : password;
+        if(environment.containsProperty(username)) {
+            username = environment.getProperty(username);
+        }
+        if(environment.containsProperty(password)) {
+            password = environment.getProperty(password);
+        }
         properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
                 + username + "\"  password=\"" + password + "\";");
         for (KafkaProperty kafkaProperty : kafkaConsumerDesc.properties()) {
-            properties.put(kafkaProperty.key(), kafkaProperty.value());
+            String propertyValue = kafkaProperty.value();
+            if(environment.containsProperty(propertyValue)) {
+                propertyValue = environment.getProperty(propertyValue);
+            }
+            properties.put(kafkaProperty.key(), propertyValue);
         }
         return new KafkaConsumer<>(properties);
     }
@@ -115,7 +134,12 @@ public class KafkaClientInitFactory {
         KafkaClient kafkaClient = kafkaDefinition.getKafkaClient();
         KafkaProducerDesc kafkaProducerDesc = kafkaDefinition.getKafkaProducerDesc();
         Properties properties = new Properties();
-        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, String.join(",", kafkaProducerDesc.brokers()));
+        String brokers = String.join(",", kafkaProducerDesc.brokers());
+        Environment environment = KafkaClientSelector.beanFactory.getBean(Environment.class);
+        if(environment.containsProperty(brokers)) {
+            brokers = environment.getProperty(brokers);
+        }
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -125,27 +149,24 @@ public class KafkaClientInitFactory {
         properties.put("security.protocol", "SASL_PLAINTEXT");
         properties.put("sasl.mechanism", "PLAIN");
         String username = !kafkaClient.userName().equals("") ? kafkaClient.userName() : clientProperties.getUserName();
-        ;
         username = !kafkaProducerDesc.userName().equals("") ? kafkaProducerDesc.userName() : username;
         String password = !kafkaClient.password().equals("") ? kafkaClient.password() : clientProperties.getPassword();
         password = !kafkaProducerDesc.password().equals("") ? kafkaProducerDesc.password() : password;
+        if(environment.containsProperty(username)) {
+            username = environment.getProperty(username);
+        }
+        if(environment.containsProperty(password)) {
+            password = environment.getProperty(password);
+        }
         properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
                 + username + "\"  password=\"" + password + "\";");
         for (KafkaProperty kafkaProperty : kafkaProducerDesc.properties()) {
-            properties.put(kafkaProperty.key(), kafkaProperty.value());
+            String propertyValue = kafkaProperty.value();
+            if(environment.containsProperty(propertyValue)) {
+                propertyValue = environment.getProperty(propertyValue);
+            }
+            properties.put(kafkaProperty.key(), propertyValue);
         }
         return new KafkaProducer<>(properties);
     }
-
-    protected <T> T getProperties(String key, Class<T> clazz, T defaultValue) {
-        T value = null;
-        if(key.startsWith("${") && key.endsWith("}")) {
-            value =  environment.getProperty(key, clazz, defaultValue);
-        }
-        if(value != null) {
-            return value;
-        }
-        return (T) key;
-    }
-
 }

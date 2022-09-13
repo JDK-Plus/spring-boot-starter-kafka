@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.springframework.core.env.Environment;
 import plus.jdk.kafka.annotation.KafkaConsumerDesc;
 import plus.jdk.kafka.common.IMessageCallback;
 import plus.jdk.kafka.model.KafkaDefinition;
