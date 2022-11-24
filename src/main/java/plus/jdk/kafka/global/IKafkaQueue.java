@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class IKafkaQueue<K, V> implements Runnable {
@@ -105,11 +106,12 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
                 for (ConsumerRecord<K, V> record : records) {
                     // 保证每次只拉取一条消息，处理成功以后则开始提交，否则重试
                     boolean ret = processMessage(record.value());
-                    if (ret && clientInfo.getAutoCommit()) {
+                    if (ret || clientInfo.getAutoCommit()) {
                         consumer.commitSync();
                     }
                 }
-            } catch (Exception e) {
+                TimeUnit.SECONDS.sleep(0);
+            } catch (Exception | Error e) {
                 e.printStackTrace();
                 log.error("{}", e.getMessage());
             }
