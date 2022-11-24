@@ -14,7 +14,7 @@
 <dependency>
     <groupId>plus.jdk</groupId>
     <artifactId>spring-boot-starter-kafka</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 </dependency>
 ```
 
