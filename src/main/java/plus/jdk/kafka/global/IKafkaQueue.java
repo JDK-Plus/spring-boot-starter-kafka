@@ -106,7 +106,7 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
                 for (ConsumerRecord<K, V> record : records) {
                     // 保证每次只拉取一条消息，处理成功以后则开始提交，否则重试
                     boolean ret = processMessage(record.value());
-                    if (ret || clientInfo.getAutoCommit()) {
+                    if (!clientInfo.getAutoCommit()) {
                         consumer.commitSync();
                     }
                 }
