@@ -38,6 +38,11 @@ public class KafkaTopicDefinition {
      */
     private String password = "";
 
+    /**
+     * 是否进行用户名密码鉴权，默认需要指定
+     */
+    private Boolean authentication = true;
+
 
     /**
      * 消费的broker列表

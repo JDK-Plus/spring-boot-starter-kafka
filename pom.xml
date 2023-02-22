@@ -6,7 +6,7 @@
 
     <groupId>plus.jdk</groupId>
     <artifactId>spring-boot-starter-kafka</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
 
     <name>spring-boot-starter-kafka</name>
     <description>spring-boot-starter-kafka</description>
@@ -44,15 +44,16 @@
     </parent>
     <distributionManagement>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <id>Releases</id>
+            <name>Nexus Releases Repository</name>
+            <url>http://nexus.biz.weibo.com/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+            <id>Snapshots</id>
+            <name>Nexus Snapshots Repository</name>
+            <url>http://nexus.biz.weibo.com/repository/maven-releases/</url>
         </snapshotRepository>
     </distributionManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -129,12 +129,14 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, clientInfo.getConsumerMaxPollRecord());
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, clientInfo.getAutoCommit());
-        properties.put("security.protocol", "SASL_PLAINTEXT");
-        properties.put("sasl.mechanism", "PLAIN");
-        String username = StringUtils.hasText(clientInfo.getUserName()) ? clientInfo.getUserName() : clientProperties.getUserName();
-        String password = StringUtils.hasText(clientInfo.getPassword()) ? clientInfo.getPassword() : clientProperties.getPassword();
-        properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                + username + "\"  password=\"" + password + "\";");
+        if(kafkaDefinition.getKafkaTopicDefinition().getAuthentication()) {
+            properties.put("security.protocol", "SASL_PLAINTEXT");
+            properties.put("sasl.mechanism", "PLAIN");
+            String username = StringUtils.hasText(clientInfo.getUserName()) ? clientInfo.getUserName() : clientProperties.getUserName();
+            String password = StringUtils.hasText(clientInfo.getPassword()) ? clientInfo.getPassword() : clientProperties.getPassword();
+            properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
+                    + username + "\"  password=\"" + password + "\";");
+        }
         for (NamePair namePair : clientProperties.getConsumerGlobalConfig()) {
             properties.put(namePair.getKey(), namePair.getValue());
         }
@@ -156,12 +158,14 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
         properties.put(ProducerConfig.LINGER_MS_CONFIG, 50);
         properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
         properties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
-        properties.put("security.protocol", "SASL_PLAINTEXT");
-        properties.put("sasl.mechanism", "PLAIN");
-        String username = StringUtils.hasText(clientInfo.getUserName()) ? clientInfo.getUserName() : clientProperties.getUserName();
-        String password = StringUtils.hasText(clientInfo.getPassword()) ? clientInfo.getPassword() : clientProperties.getPassword();
-        properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                + username + "\"  password=\"" + password + "\";");
+        if(kafkaDefinition.getKafkaTopicDefinition().getAuthentication()) {
+            properties.put("security.protocol", "SASL_PLAINTEXT");
+            properties.put("sasl.mechanism", "PLAIN");
+            String username = StringUtils.hasText(clientInfo.getUserName()) ? clientInfo.getUserName() : clientProperties.getUserName();
+            String password = StringUtils.hasText(clientInfo.getPassword()) ? clientInfo.getPassword() : clientProperties.getPassword();
+            properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
+                    + username + "\"  password=\"" + password + "\";");
+        }
         for (NamePair namePair : clientProperties.getProducerGlobalConfig()) {
             properties.put(namePair.getKey(), namePair.getValue());
         }
