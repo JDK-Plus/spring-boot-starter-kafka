@@ -6,7 +6,7 @@
 
     <groupId>plus.jdk</groupId>
     <artifactId>spring-boot-starter-kafka</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
 
     <name>spring-boot-starter-kafka</name>
     <description>spring-boot-starter-kafka</description>

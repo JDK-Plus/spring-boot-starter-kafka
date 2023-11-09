@@ -101,19 +101,21 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
         String topicName = kafkaDefinition.getKafkaTopicDefinition().getTopic();
         consumer.subscribe(Collections.singletonList(topicName));
         while (true) {
+            boolean success = false;
             try {
                 ConsumerRecords<K, V> records = consumer.poll(Duration.ofSeconds(clientInfo.getPollTimeout()));
                 for (ConsumerRecord<K, V> record : records) {
                     // 保证每次只拉取一条消息，处理成功以后则开始提交，否则重试
-                    boolean ret = processMessage(record.value());
-                    if (!clientInfo.getAutoCommit()) {
-                        consumer.commitSync();
-                    }
+                    success = processMessage(record.value());
                 }
                 TimeUnit.SECONDS.sleep(0);
             } catch (Exception | Error e) {
                 e.printStackTrace();
                 log.error("{}", e.getMessage());
+            } finally {
+                if(clientInfo.getAutoCommit() || success) {
+                    consumer.commitSync();
+                }
             }
         }
     }
