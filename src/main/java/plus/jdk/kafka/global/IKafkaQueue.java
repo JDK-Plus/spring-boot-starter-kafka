@@ -84,7 +84,7 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
         return pushMessage(messageList, new IMessageCallback<V>() {
             @Override
             public void onCompletion(V message, RecordMetadata recordMetadata, Exception exception) {
-                if(exception != null && retryNum > 1) {
+                if (exception != null && retryNum > 1) {
                     pushMessage(messageList, this, retryNum - 1);
                     return;
                 }
@@ -108,14 +108,13 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
                     // 保证每次只拉取一条消息，处理成功以后则开始提交，否则重试
                     success = processMessage(record.value());
                 }
+                if (!clientInfo.getAutoCommit() && success) {
+                    consumer.commitSync();
+                }
                 TimeUnit.SECONDS.sleep(0);
             } catch (Exception | Error e) {
                 e.printStackTrace();
                 log.error("{}", e.getMessage());
-            } finally {
-                if(clientInfo.getAutoCommit() || success) {
-                    consumer.commitSync();
-                }
             }
         }
     }
@@ -131,13 +130,12 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, clientInfo.getConsumerMaxPollRecord());
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, clientInfo.getAutoCommit());
-        if(kafkaDefinition.getKafkaTopicDefinition().getAuthentication()) {
+        if (kafkaDefinition.getKafkaTopicDefinition().getAuthentication()) {
             properties.put("security.protocol", "SASL_PLAINTEXT");
             properties.put("sasl.mechanism", "PLAIN");
             String username = StringUtils.hasText(clientInfo.getUserName()) ? clientInfo.getUserName() : clientProperties.getUserName();
             String password = StringUtils.hasText(clientInfo.getPassword()) ? clientInfo.getPassword() : clientProperties.getPassword();
-            properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                    + username + "\"  password=\"" + password + "\";");
+            properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + username + "\"  password=\"" + password + "\";");
         }
         for (NamePair namePair : clientProperties.getConsumerGlobalConfig()) {
             properties.put(namePair.getKey(), namePair.getValue());
@@ -160,13 +158,12 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
         properties.put(ProducerConfig.LINGER_MS_CONFIG, 50);
         properties.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
         properties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
-        if(kafkaDefinition.getKafkaTopicDefinition().getAuthentication()) {
+        if (kafkaDefinition.getKafkaTopicDefinition().getAuthentication()) {
             properties.put("security.protocol", "SASL_PLAINTEXT");
             properties.put("sasl.mechanism", "PLAIN");
             String username = StringUtils.hasText(clientInfo.getUserName()) ? clientInfo.getUserName() : clientProperties.getUserName();
             String password = StringUtils.hasText(clientInfo.getPassword()) ? clientInfo.getPassword() : clientProperties.getPassword();
-            properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                    + username + "\"  password=\"" + password + "\";");
+            properties.put("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + username + "\"  password=\"" + password + "\";");
         }
         for (NamePair namePair : clientProperties.getProducerGlobalConfig()) {
             properties.put(namePair.getKey(), namePair.getValue());
