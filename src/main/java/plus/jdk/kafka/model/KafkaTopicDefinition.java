@@ -75,6 +75,11 @@ public class KafkaTopicDefinition {
     private Boolean autoCommit = false;
 
     /**
+     * 是否启动异步提交
+     */
+    private Boolean commitAsync = false;
+
+    /**
      * 数据拉取超时时间
      */
     private Integer pollTimeout = 2;

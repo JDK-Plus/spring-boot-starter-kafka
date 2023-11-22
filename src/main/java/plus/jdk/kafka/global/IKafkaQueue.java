@@ -109,6 +109,10 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
                     success = processMessage(record.value());
                 }
                 if (!clientInfo.getAutoCommit() && success) {
+                    if(clientInfo.getCommitAsync()) {
+                        consumer.commitAsync();
+                        continue;
+                    }
                     consumer.commitSync();
                 }
                 TimeUnit.SECONDS.sleep(0);
