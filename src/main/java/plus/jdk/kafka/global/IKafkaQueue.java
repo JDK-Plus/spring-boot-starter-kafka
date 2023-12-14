@@ -44,7 +44,7 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
      */
     protected KafkaDefinition kafkaDefinition;
 
-    protected boolean processMessage(V data) {
+    protected boolean processMessage(V data) throws Exception {
         return true;
     }
 
@@ -106,10 +106,19 @@ public abstract class IKafkaQueue<K, V> implements Runnable {
                 ConsumerRecords<K, V> records = consumer.poll(Duration.ofSeconds(clientInfo.getPollTimeout()));
                 for (ConsumerRecord<K, V> record : records) {
                     // 保证每次只拉取一条消息，处理成功以后则开始提交，否则重试
-                    success = processMessage(record.value());
+                    for (int i = 0; i < clientInfo.getMaxRetry() || clientInfo.getMaxRetry() < 1; i++) {
+                        try {
+                            success = processMessage(record.value());
+                            if(success) {
+                                break;
+                            }
+                        } catch (Exception e) {
+                            log.error("processMessage failed, msg:{}", e.getMessage());
+                        }
+                    }
                 }
                 if (!clientInfo.getAutoCommit() && success) {
-                    if(clientInfo.getCommitAsync()) {
+                    if (clientInfo.getCommitAsync()) {
                         consumer.commitAsync();
                         continue;
                     }

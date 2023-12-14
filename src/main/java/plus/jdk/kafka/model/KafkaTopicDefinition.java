@@ -80,6 +80,12 @@ public class KafkaTopicDefinition {
     private Boolean commitAsync = false;
 
     /**
+     * 最大重试处理次数，当设置为手动提交时为了保证处理成功后再提交offset，会不断去重试，默认5
+     * 若小于1则会不断的重试，直到成功为止
+     */
+    private Integer maxRetry = 5;
+
+    /**
      * 数据拉取超时时间
      */
     private Integer pollTimeout = 2;
